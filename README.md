@@ -17,7 +17,7 @@ Recursos que serão criados por default:
 
 ## Supersimplificação dos recursos criados
 
-![Projeto](./doc/img/mgc_master_workers_light.png)
+![Projeto](./doc/img/recursos/mgc_master_workers_light.png)
 
 ## Requisitos
 
@@ -29,7 +29,12 @@ Instale o cli utilizando a [documentação oficial da hashicorp](https://develop
 
 #### 2.1 - Crie uma apikey utilizando os passos da [documentação oficial da MagaluCloud](https://docs.magalu.cloud/docs/devops-tools/api-keys/how-to/object-storage/create-api-keys/)
 
-#### 2.2 - Insira a apikey na [propriedade api_key do arquivo tfvars](./main/terraform.tfvars#L1)
+2.1.1 - No menu **Magalu Cloud** selecione as permissões abaixo:
+
+![API Key](./doc/img/api_key/permissoes.jpg)
+
+
+#### 2.2 - Insira a apikey na propriedade [api_key](./main/terraform.tfvars#L1) do arquivo tfvars
 
 ## Criação das VMs
 
@@ -71,7 +76,7 @@ terraform apply
 terraform destroy
 ```
 
-## Criação do Cluster K3s
+## Criação do Cluster K3S
 
 #### 1 - Obtenha o ip público do master
 
