@@ -13,11 +13,25 @@ Recursos que serão criados por default:
 | [Subnet](./main/modules/subnet/main.tf) | Divisão lógica dentro de uma VPC e que utilizará uma faixa de ips da subnetpool |
 | [Security Group](./main/modules/security-group/main.tf) | Grupo de Segurança que sera adicionado ao master |
 | [Public IP](./main/modules/public_ip/main.tf) | IP Público que será adicionado ao master |
-| [Virtual Machine ](./main/modules/virtual_machines/main.tf) | 1 virtual machine com Ubuntu 24.04 para o Master e 3 virtual machine com Ubuntu 24.04 para o Worker |
+| [Virtual Machine (1 CPU + 4 GB RAM + 40 GB disco)](./main/modules/virtual_machines/main.tf) | 1 virtual machine com Ubuntu 24.04 para o Master e 3 virtual machine com Ubuntu 24.04 para o Worker |
 
 ## Supersimplificação dos recursos criados
 
 ![Projeto](./doc/img/recursos/mgc_master_workers_light.png)
+
+## Custo Estimado
+
+Deve ser considerado também o custo do **IP fixo do master** + **Custo de transferência de rede (Egress)**
+
+| VM | Tempo do ambiente ligado (Horas) | Cálculo | Custo Parcial |
+| :---: | :---: | :---: | :---: |
+| 4 VMs (BV1-4-40) | 1h | 0,1274 × 4h | R$ 0,5096 |
+| 4 VMs (BV1-4-40) | 4h | 0,1274 × 16h | R$ 2,0384 |
+| 4 VMs (BV1-4-40) | 8h | 0,1274 × 32h | R$ 4,0768 |
+| 4 VMs (BV1-4-40) | 24h | 0,1274 × 96h | R$ 12,2304 |
+| 4 VMs (BV1-4-40) | 168h (7 dias) | 0,1274 × 672h | R$ 85,6128 |
+| 4 VMs (BV1-4-40) | 360h (15 dias) | 0,1274 × 1440h | R$ 183,456 |
+| 4 VMs (BV1-4-40) | 720h (30 dias) | 0,1274 × 2880h | R$ 366,912 |
 
 ## Requisitos
 
