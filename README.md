@@ -27,9 +27,9 @@ Recursos que serão criados por default:
 | Virtual Machine - Master | 1 virtual machine com Ubuntu 24.04 |
 | Virtual Machine - Worker | 3 virtual machine com Ubuntu 24.04 |
 
-## Visualização dos recursos criados
+## Supersimplificação dos recursos criados
 
-img
+![Projeto](./doc/img/mgc_master_workers_light.png)
 
 ## Requisitos
 
