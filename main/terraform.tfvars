@@ -1,0 +1,6 @@
+api_key                       = "?"
+mgc_region                    = "br-se1"
+cluster_region_se_1_az_a      = "br-se1-a"
+cluster_ssh_key_name          = "chave_ssh_example"
+cluster_ssh_pubkey_file_path  = "../ssh/chave_ssh_example.pub"
+virtual_machine_dep_user_data = "../scripts-sh/instala-docker.sh"
