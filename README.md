@@ -1,17 +1,6 @@
 # MagaluCloud
 
-Criação de máquinas virtuais (VM) na Magalu via Terraform que formarão um cluster Kubernetes baremetal.
-
-## Módulos Terraform
-
-Código terraform utilizado para:
-
-- Criação de um [IP público](./main/modules/public_ip/main.tf)
-- Criação de um [Security Group](./main/modules/security-group/main.tf)
-- Criação de uma [Subnet](./main/modules/subnet/main.tf)
-- Criação de uma [SubnetPool](./main/modules/subnet-pool/main.tf)
-- Criação de uma [Virtual Machine](./main/modules/virtual_machines/main.tf)
-- Criação de uma [VPC](./main/modules/vpc/main.tf)
+Criação de máquinas virtuais (VM) na Magalu via Terraform que formarão um cluster Kubernetes 'baremetal'.
 
 ## Recursos que serão criados
 
@@ -19,13 +8,12 @@ Recursos que serão criados por default:
 
 | Tipo | Descrição |
 | --- | --- |
-| SubnetPool | Define quais endereços IP estarão disponíveis para cada Subnet |
-| VPC | Rede Virtual Isolada dentro da Cloud na qual os recursos são criados |
-| Subnet | Divisão lógica dentro de uma VPC e que utilizará uma faixa de ips da subnetpool |
-| Security Group | Grupo de Segurança que sera adicionado ao master |
-| Public IP do Master | IP Público que será adicionado ao master |
-| Virtual Machine - Master | 1 virtual machine com Ubuntu 24.04 |
-| Virtual Machine - Worker | 3 virtual machine com Ubuntu 24.04 |
+| [SubnetPool](./main/modules/subnet-pool/main.tf) | Define quais endereços IP estarão disponíveis para cada Subnet |
+| [VPC](./main/modules/vpc/main.tf) | Rede Virtual Isolada dentro da Cloud na qual os recursos são criados |
+| [Subnet](./main/modules/subnet/main.tf) | Divisão lógica dentro de uma VPC e que utilizará uma faixa de ips da subnetpool |
+| [Security Group](./main/modules/security-group/main.tf) | Grupo de Segurança que sera adicionado ao master |
+| [Public IP](./main/modules/public_ip/main.tf) | IP Público que será adicionado ao master |
+| [Virtual Machine ](./main/modules/virtual_machines/main.tf) | 1 virtual machine com Ubuntu 24.04 para o Master e 3 virtual machine com Ubuntu 24.04 para o Worker |
 
 ## Supersimplificação dos recursos criados
 
@@ -33,15 +21,15 @@ Recursos que serão criados por default:
 
 ## Requisitos
 
-### Terraform 
+### 1 - Terraform 
 
 Instale o cli utilizando a [documentação oficial da hashicorp](https://developer.hashicorp.com/terraform/install)
 
-### API Key
+### 2 - API Key
 
-#### 1 - Crie uma apikey utilizando os passos da [documentação oficial da MagaluCloud](https://docs.magalu.cloud/docs/devops-tools/api-keys/how-to/object-storage/create-api-keys/)
+#### 2.1 - Crie uma apikey utilizando os passos da [documentação oficial da MagaluCloud](https://docs.magalu.cloud/docs/devops-tools/api-keys/how-to/object-storage/create-api-keys/)
 
-#### 2 - Insira a apikey na [propriedade api_key do arquivo tfvars](./main/terraform.tfvars#L1)
+#### 2.2 - Insira a apikey na [propriedade api_key do arquivo tfvars](./main/terraform.tfvars#L1)
 
 ## Criação das VMs
 
@@ -100,23 +88,25 @@ ssh -i ../ssh/chave_ssh_example ubuntu@$PUBLIC_MASTER_IP 'chmod 400 /home/ubuntu
 
 #### 3 - Acesse o host master via ssh
 
+3.1 - Comando:
+
 ```bash
 ssh -i ../ssh/chave_ssh_example ubuntu@$PUBLIC_MASTER_IP
 ```
 
-Troque IP_EXTERNO pelo ip público do master no comando abaixo e execute o comando no master:
+3.2 - Troque IP_EXTERNO pelo ip público do master no comando abaixo e execute o comando no master:
 
 ```bash
 curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="--tls-san IP_EXTERNO" sh -s -
 ```
 
-Exiba o status do cluster:
+3.3 - Exiba o status do cluster:
 
 ```bash
 sudo kubectl get node
 ```
 
-Caso esteja em Ready, obtenha o token:
+3.4 - Caso esteja em Ready, obtenha o token:
 
 ```bash
 sudo cat /var/lib/rancher/k3s/server/node-token
@@ -130,19 +120,19 @@ ip -f inet addr show ens3 | sed -En -e 's/.*inet ([0-9.]+).*/\1/p'
 
 #### 5 - A partir do master
 
-Acesse um dos workers:
+5.1 - Acesse um dos workers trocando **ip_worker** por um ip válido:
 
 ```bash
 ssh -i $HOME/key ubuntu@ip_worker
 ```
 
-Faça o join trocando IP_PRIVADO_MASTER pelo ip do comando 4 e o TOKEN_COMANDO_3 pelo valor obtido no passo 3:
+5.2 - Faça o join trocando **IP_PRIVADO_MASTER** pelo ip obtido no comando 4 e o **CLUSTER_TOKEN** pelo valor obtido no passo 3.4:
 
 ```bash
-curl -sfL https://get.k3s.io | K3S_URL=https://IP_PRIVADO_MASTER:6443 K3S_TOKEN=TOKEN_COMANDO_3 sh -
+curl -sfL https://get.k3s.io | K3S_URL=https://IP_PRIVADO_MASTER:6443 K3S_TOKEN=CLUSTER_TOKEN sh -
 ```
 
-Repita essa etapa para todos os workers
+Repita as etapas 5.1 e 5.2 para todos os workers
 
 #### 6 - Exiba o status do cluster a partir do master:
 
