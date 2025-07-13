@@ -101,6 +101,20 @@ terraform apply
 terraform destroy
 ```
 
+## Teste de acesso à máquina Master
+
+Teste o acesso via chave ssh:
+
+```bash
+bash -c "$(terraform output --raw vm_master_ssh_command)"
+```
+
+Teste o acesso via password:
+
+```bash
+ssh ubuntu@$(terraform output --raw vm_master_public_ip)
+```
+
 ## Criação do Cluster K3S
 
 #### 1 - Obtenha o ip público do master
