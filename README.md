@@ -52,39 +52,50 @@ Instale o cli utilizando a [documentação oficial da hashicorp](https://develop
 
 ## Criação das VMs
 
+A partir da raiz do projeto
+
 #### 1 - Crie um par de chaves ssh:
 
 ```bash
 mkdir ssh
-ssh-keygen -t rsa -f ssh/chave_ssh_example -b 4096 -C "chave_ssh_example"
-chmod 600 ssh/chave_ssh_example
+prefix=$(echo $RANDOM)
+ssh-keygen -t rsa -f ssh/chave_ssh_master_$prefix -b 4096 -C "chave_ssh_master_$prefix"
+chmod 600 ssh/chave_ssh_master_$prefix
+(read -r line; sed -i "s/CHAVE_NOME/$line/" main/terraform.tfvars) <<< "$prefix"
+(read -r line; sed -i "s/TEXTO_SUFIXO/$line/" main/terraform.tfvars) <<< "$prefix"
 ```
 
-#### 2 - Acesse o diretório principal:
+#### 2 - Gere e altere a senha do usuário ubuntu
+
+```bash
+(read -r line; sed -i "s/NOVA_SENHA/$line/" scripts-sh/instala-docker.sh) <<< $(cat /dev/urandom | tr -dc 'a-z0-9' | head -c 12)
+```
+
+#### 3 - Acesse o diretório principal:
 
 ```bash
 cd main
 ```
 
-#### 3 - Inicialize o terraform:
+#### 4 - Inicialize o terraform:
 
 ```bash
 terraform init
 ```
 
-#### 4 - Verifique se as configurações estão corretas:
+#### 5 - Verifique se as configurações estão corretas:
 
 ```bash
 terraform plan
 ```
 
-#### 5 - Crie os recursos:
+#### 6 - Crie os recursos:
 
 ```bash
 terraform apply
 ```
 
-#### 6 - Remova os recursos quando necessário:
+#### 7 - Remova os recursos quando necessário:
 
 ```bash
 terraform destroy

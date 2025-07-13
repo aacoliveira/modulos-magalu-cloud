@@ -1,32 +1,32 @@
 module "subnet_pool" {
   source                  = "./modules/subnet-pool"
-  subnet_pool_name        = "SubnetPool_do_Cluster"
-  subnet_pool_description = "SubnetPool_do_Cluster"
-  subnet_pool_cidr        = "10.0.0.0/26"
-  subnet_pool_type        = "pip"
+  subnet_pool_name        = "${var.subnet_name}_${var.string_sufixo}"
+  subnet_pool_description = "${var.subnet_name}_${var.string_sufixo}"
+  subnet_pool_cidr        = var.subnet_pool_cidr
+  subnet_pool_type        = var.subnet_pool_type
 }
 
 module "vpc" {
   source          = "./modules/vpc"
-  vpc_name        = "VPC_do_Cluster"
-  vpc_description = "VPC_do_Cluster"
+  vpc_name        = "${var.vpc_name}_${var.string_sufixo}"
+  vpc_description = "${var.vpc_name}_${var.string_sufixo}"
 }
 
 module "subnet" {
   source                   = "./modules/subnet"
-  subnet_name              = "Subnet_do_Cluster"
-  subnet_description       = "Subnet_do_Cluster"
-  subnet_cidr_block        = "10.0.0.0/28"
-  subnet_dns_nameservers   = ["1.1.1.1"]
-  subnet_ip_version        = "IPv4"
+  subnet_name              = "${var.subnet_name}_${var.string_sufixo}"
+  subnet_description       = "${var.subnet_name}_${var.string_sufixo}"
+  subnet_cidr_block        = var.subnet_cidr
+  subnet_dns_nameservers   = var.subnet_dns_nameservers
+  subnet_ip_version        = var.subnet_ip_version
   subnet_dep_subnetpool_id = module.subnet_pool.subnet_pool_id
   subnet_dep_vpc_id        = module.vpc.vpc_id
 }
 
 module "security_group" {
   source                               = "./modules/security-group"
-  security_group_name                  = "SG_do_Cluster"
-  security_group_description           = "SG_do_Cluster"
+  security_group_name                  = "${var.sec_group_name}_${var.string_sufixo}"
+  security_group_description           = "${var.sec_group_name}_${var.string_sufixo}"
   security_group_disable_default_rules = true
 }
 
@@ -36,12 +36,12 @@ resource "mgc_ssh_keys" "skey" {
 }
 
 module "virtual_machine_worker" {
-  count                         = 3
+  count                         = var.virtual_machine_worker_quantidade
   source                        = "./modules/virtual_machines"
   virtual_machine_name          = "worker-${count.index}"
   virtual_machine_az            = var.cluster_region_se_1_az_a
-  virtual_machine_type          = "BV1-4-40"
-  virtual_machine_image         = "cloud-ubuntu-24.04 LTS"
+  virtual_machine_type          = var.virtual_machine_master_type
+  virtual_machine_image         = var.virtual_machine_image
   virtual_machine_dep_skey_name = mgc_ssh_keys.skey.name
   virtual_machine_dep_vpc_id    = module.vpc.vpc_id
   virtual_machine_dep_user_data = var.virtual_machine_dep_user_data
@@ -49,12 +49,12 @@ module "virtual_machine_worker" {
 }
 
 module "virtual_machine_master" {
-  count                         = 1
+  count                         = var.virtual_machine_master_quantidade
   source                        = "./modules/virtual_machines"
   virtual_machine_name          = "master-${count.index}"
   virtual_machine_az            = var.cluster_region_se_1_az_a
-  virtual_machine_type          = "BV1-4-40"
-  virtual_machine_image         = "cloud-ubuntu-24.04 LTS"
+  virtual_machine_type          = var.virtual_machine_worker_type
+  virtual_machine_image         = var.virtual_machine_image
   virtual_machine_dep_skey_name = mgc_ssh_keys.skey.name
   virtual_machine_dep_vpc_id    = module.vpc.vpc_id
   virtual_machine_dep_user_data = var.virtual_machine_dep_user_data
@@ -65,7 +65,7 @@ module "virtual_machine_master" {
 module "public_ip_master" {
   count                 = 1
   source                = "./modules/public_ip"
-  public_ip_description = "IP_Publico_Master_0"
+  public_ip_description = "IP_Publico_Master_0_${var.string_sufixo}"
   public_ip_dep_vpc_id  = module.vpc.vpc_id
   depends_on            = [module.virtual_machine_master[0]]
 }
