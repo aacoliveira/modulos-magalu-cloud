@@ -68,7 +68,7 @@ chmod 600 ssh/chave_ssh_master_$prefix
 #### 2 - Gere e altere a senha do usuário ubuntu
 
 ```bash
-(read -r line; sed -i "s/NOVA_SENHA/$line/" scripts-sh/instala-docker.sh) <<< $(cat /dev/urandom | tr -dc 'a-z0-9' | head -c 12)
+(read -r line; sed -i "s/NOVA_SENHA/$line/" scripts-sh/instala-docker.sh) <<< $(cat /dev/urandom | tr -dc 'a-z0-9' | head -c 8)
 ```
 
 #### 3 - Acesse o diretório principal:
