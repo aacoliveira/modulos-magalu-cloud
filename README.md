@@ -115,71 +115,57 @@ Teste o acesso via password:
 ssh ubuntu@$(terraform output --raw vm_master_public_ip)
 ```
 
-## Criação do Cluster K3S
+## Criação das chaves SSH internas
 
-#### 1 - Obtenha o ip público do master
+Essas chaves serão utilizadas de forma interna pelos hosts
 
-```bash
-export PUBLIC_MASTER_IP=$(terraform output -raw vm_master_public_ip)
-```
+### Acesse o master
 
-#### 2 - Envie a chave privada para o host master e altere a permissão:
+#### Gere um novo par de chaves ssh
 
 ```bash
-scp -i ../ssh/chave_ssh_example ../ssh/chave_ssh_example  ubuntu@$PUBLIC_MASTER_IP:~/key
-ssh -i ../ssh/chave_ssh_example ubuntu@$PUBLIC_MASTER_IP 'chmod 400 /home/ubuntu/key'
+ssh-keygen -t rsa -f ~/.ssh/chave_ssh_k3s -b 4096 -C "chave_ssh_k3s"
 ```
 
-#### 3 - Acesse o host master via ssh
-
-3.1 - Comando:
+#### Copie a chave ssh para o master
 
 ```bash
-ssh -i ../ssh/chave_ssh_example ubuntu@$PUBLIC_MASTER_IP
+ssh-copy-id -i /home/ubuntu/chave_ssh_k3s.pub ubuntu@localhost
 ```
 
-3.2 - Troque IP_EXTERNO pelo ip público do master no comando abaixo e execute o comando no master:
+#### Copie a chave ssh para os demais hosts
 
 ```bash
-curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="--tls-san IP_EXTERNO" sh -s -
+ssh-copy-id -i /home/ubuntu/chave_ssh_k3s.pub ubuntu@10.0.0.?
 ```
 
-3.3 - Exiba o status do cluster:
+## Criação do cluster K3S
+
+Acesse o master-0 
+
+### Instale o k3sup
 
 ```bash
-sudo kubectl get node
+wget https://github.com/alexellis/k3sup/releases/download/0.13.10/k3sup
+sudo install k3sup /usr/local/bin/
+k3sup --help
 ```
 
-3.4 - Caso esteja em Ready, obtenha o token:
+### Inicie o cluster no master-0
 
 ```bash
-sudo cat /var/lib/rancher/k3s/server/node-token
+k3sup install --local --context default --no-extras --k3s-version  v1.32.6+k3s1
+export KUBECONFIG=`pwd`/kubeconfig
+kubectl get node -o wide
 ```
 
-#### 4 - Obtenha o ip privado do master
+Adicione os demais workers ao cluster trocando **IP_INTERNO_WORKER** pelo ip do worker em questão e **IP_INTERNO_MASTER** pelo ip do master-0:
 
 ```bash
-ip -f inet addr show ens3 | sed -En -e 's/.*inet ([0-9.]+).*/\1/p'
+export AGENT_IP=IP_INTERNO_WORKER
+export SERVER_IP=IP_INTERNO_MASTER
+export USER=ubuntu
+k3sup join --ip $AGENT_IP --server-ip $SERVER_IP --user $USER --ssh-key /home/ubuntu/.ssh/chave_ssh_k3s --k3s-version  v1.32.6+k3s1
 ```
 
-#### 5 - A partir do master
-
-5.1 - Acesse um dos workers trocando **ip_worker** por um ip válido:
-
-```bash
-ssh -i $HOME/key ubuntu@ip_worker
-```
-
-5.2 - Faça o join trocando **IP_PRIVADO_MASTER** pelo ip obtido no comando 4 e o **CLUSTER_TOKEN** pelo valor obtido no passo 3.4:
-
-```bash
-curl -sfL https://get.k3s.io | K3S_URL=https://IP_PRIVADO_MASTER:6443 K3S_TOKEN=CLUSTER_TOKEN sh -
-```
-
-Repita as etapas 5.1 e 5.2 para todos os workers
-
-#### 6 - Exiba o status do cluster a partir do master:
-
-```bash
-sudo kubectl get node
-```
+Repita esse comando para os demais workers
