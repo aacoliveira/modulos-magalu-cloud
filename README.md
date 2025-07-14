@@ -130,16 +130,16 @@ ssh-keygen -t rsa -f ~/.ssh/chave_ssh_k3s -b 4096 -C "chave_ssh_k3s"
 #### Copie a chave ssh para o master
 
 ```bash
-ssh-copy-id -i /home/ubuntu/chave_ssh_k3s.pub ubuntu@localhost
+ssh-copy-id -i /home/ubuntu/.ssh/chave_ssh_k3s.pub ubuntu@localhost
 ```
 
 #### Copie a chave ssh para os demais hosts
 
 ```bash
-ssh-copy-id -i /home/ubuntu/chave_ssh_k3s.pub ubuntu@10.0.0.?
+ssh-copy-id -i /home/ubuntu/.ssh/chave_ssh_k3s.pub ubuntu@10.0.0.?
 ```
 
-## Criação do cluster K3S
+## Criação do cluster Kubernetes com K3S
 
 Acesse o master-0 
 
@@ -154,8 +154,8 @@ k3sup --help
 ### Inicie o cluster no master-0
 
 ```bash
-k3sup install --local --context default --no-extras --k3s-version  v1.32.6+k3s1
-export KUBECONFIG=`pwd`/kubeconfig
+k3sup install --local --context default --no-extras --k3s-version  v1.32.6+k3s1 && \
+export KUBECONFIG=`pwd`/kubeconfig && \
 kubectl get node -o wide
 ```
 
@@ -169,3 +169,12 @@ k3sup join --ip $AGENT_IP --server-ip $SERVER_IP --user $USER --ssh-key /home/ub
 ```
 
 Repita esse comando para os demais workers
+
+### Resultado
+
+```
+NAME       STATUS   ROLES                  AGE     VERSION        INTERNAL-IP   EXTERNAL-IP   OS-IMAGE             KERNEL-VERSION     CONTAINER-RUNTIME
+master-0   Ready    control-plane,master   2m32s   v1.32.6+k3s1   10.0.0.8      <none>        Ubuntu 24.04.2 LTS   6.8.0-60-generic   containerd://2.0.5-k3s1.32
+worker-0   Ready    <none>                 25s     v1.32.6+k3s1   10.0.0.14     <none>        Ubuntu 24.04.2 LTS   6.8.0-60-generic   containerd://2.0.5-k3s1.32
+worker-1   Ready    <none>                 6s      v1.32.6+k3s1   10.0.0.5      <none>        Ubuntu 24.04.2 LTS   6.8.0-60-generic   containerd://2.0.5-k3s1.32
+```
