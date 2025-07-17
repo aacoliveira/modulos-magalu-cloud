@@ -1,0 +1,14 @@
+{
+  "image": "coliveiraa/imagem_base_tools:v0.0.2",
+
+  "customizations": {
+    "vscode": {
+      "extensions": [        
+        "hashicorp.terraform",
+        "ms-kubernetes-tools.vscode-kubernetes-tools",
+        "ms-azuretools.vscode-docker",
+        "redhat.vscode-yaml"
+      ]
+    }
+  }
+}
