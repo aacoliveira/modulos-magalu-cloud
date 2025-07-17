@@ -65,10 +65,19 @@ chmod 600 ssh/chave_ssh_master_$prefix
 (read -r line; sed -i "s/TEXTO_SUFIXO/$line/" main/terraform.tfvars) <<< "$prefix"
 ```
 
-#### 2 - Gere e altere a senha do usuário ubuntu
+#### 2 - Definição de senha de ssh do usuário ubuntu
+
+Crie uma nova senha com o comando abaixo:
 
 ```bash
-(read -r line; sed -i "s/NOVA_SENHA/$line/" scripts-sh/instala-docker.sh) <<< $(cat /dev/urandom | tr -dc 'a-z0-9' | head -c 8)
+PWD_USER_UBUNTU=$(cat /dev/urandom | tr -dc 'a-z0-9' | head -c 8)
+```
+
+Com a senha definida, salve-a em um arquivo e faça a inserção no shell de configuração das máquinas com o comando abaixo:
+
+```bash
+echo $PWD_USER_UBUNTU > pwd_user_ubuntu.txt
+(read -r line; sed -i "s/NOVA_SENHA/$line/" scripts-sh/startup.sh) <<< $PWD_USER_UBUNTU
 ```
 
 #### 3 - Acesse o diretório principal:
@@ -169,6 +178,7 @@ k3sup join --ip $AGENT_IP --server-ip $SERVER_IP --user $USER --ssh-key /home/ub
 ```
 
 Repita esse comando para os demais workers
+
 
 ### Resultado
 
