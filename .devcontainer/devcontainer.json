@@ -1,5 +1,5 @@
 {
-  "image": "coliveiraa/imagem_base_tools:v0.0.2",
+  "image": "coliveiraa/imagem_base_tools:v0.0.3",
 
   "customizations": {
     "vscode": {
