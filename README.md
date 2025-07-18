@@ -179,7 +179,6 @@ k3sup join --ip $AGENT_IP --server-ip $SERVER_IP --user $USER --ssh-key /home/ub
 
 Repita esse comando para os demais workers
 
-
 ### Resultado
 
 ```
