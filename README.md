@@ -21,17 +21,17 @@ Recursos que serão criados por default:
 
 ## Custo Estimado
 
-Deve ser considerado também o custo do **IP fixo do master** + **Custo de transferência de rede (Egress)**
+Deve ser considerado também o custo do **IP fixo do master** + **Custo de transferência de rede (Egress e NAT)**
 
-| VM | Tempo do ambiente ligado (Horas) | Cálculo | Custo Parcial |
+| VM | Tempo do ambiente ligado | Cálculo | Custo Parcial |
 | :---: | :---: | :---: | :---: |
-| 4 VMs (BV1-4-40) | 1h | 0,1274 × 4h | R$ 0,5096 |
-| 4 VMs (BV1-4-40) | 4h | 0,1274 × 16h | R$ 2,0384 |
-| 4 VMs (BV1-4-40) | 8h | 0,1274 × 32h | R$ 4,0768 |
-| 4 VMs (BV1-4-40) | 24h | 0,1274 × 96h | R$ 12,2304 |
-| 4 VMs (BV1-4-40) | 168h (7 dias) | 0,1274 × 672h | R$ 85,6128 |
-| 4 VMs (BV1-4-40) | 360h (15 dias) | 0,1274 × 1440h | R$ 183,456 |
-| 4 VMs (BV1-4-40) | 720h (30 dias) | 0,1274 × 2880h | R$ 366,912 |
+| 4 VMs (BV1-4-40) | 01h (04h total) | 0,1274 × 4h | R$ 0,5096 |
+| 4 VMs (BV1-4-40) | 04h (16h total) | 0,1274 × 16h | R$ 2,0384 |
+| 4 VMs (BV1-4-40) | 08h (32h total) | 0,1274 × 32h | R$ 4,0768 |
+| 4 VMs (BV1-4-40) | 24h (96h total) | 0,1274 × 96h | R$ 12,2304 |
+| 4 VMs (BV1-4-40) | 168h (7 dias / 672h total) | 0,1274 × 672h | R$ 85,6128 |
+| 4 VMs (BV1-4-40) | 360h (15 dias / 1440h total) | 0,1274 × 1440h | R$ 183,456 |
+| 4 VMs (BV1-4-40) | 720h (30 dias / 2880h total) | 0,1274 × 2880h | R$ 366,912 |
 
 ## Requisitos
 
