@@ -54,60 +54,33 @@ Instale o cli utilizando a [documentação oficial da hashicorp](https://develop
 
 A partir da raiz do projeto
 
-#### 1 - Crie um par de chaves ssh:
+#### 1 - Prepare o ambiente localmente
 
 ```bash
-mkdir ssh
-prefix=$(echo $RANDOM)
-ssh-keygen -t rsa -f ssh/chave_ssh_master_$prefix -b 4096 -C "chave_ssh_master_$prefix"
-chmod 600 ssh/chave_ssh_master_$prefix
-(read -r line; sed -i "s/CHAVE_NOME/$line/" main/terraform.tfvars) <<< "$prefix"
-(read -r line; sed -i "s/TEXTO_SUFIXO/$line/" main/terraform.tfvars) <<< "$prefix"
+chmod +x scripts-sh/1-local-startup.sh
+./1-local-startup.sh
 ```
 
-#### 2 - Definição de senha de ssh do usuário ubuntu
+Será gerado o arquivo [scripts-sh/pwd_user_ubuntu.txt](./scripts-sh/pwd_user_ubuntu.txt) em *plaintext* com a senha de acesso do usuário **ubuntu** de todas as VMs.
 
-Crie uma nova senha com o comando abaixo:
+#### 2 - Inicialize o terraform:
+
+Estando no diretório "modulos-magalu-cloud/main" execute:
 
 ```bash
-PWD_USER_UBUNTU=$(cat /dev/urandom | tr -dc 'a-z0-9' | head -c 8)
+cd main && terraform init
 ```
 
-Com a senha definida, salve-a em um arquivo e faça a inserção no shell de configuração das máquinas com o comando abaixo:
-
-```bash
-echo $PWD_USER_UBUNTU > pwd_user_ubuntu.txt
-(read -r line; sed -i "s/NOVA_SENHA/$line/" scripts-sh/startup.sh) <<< $PWD_USER_UBUNTU
-```
-
-#### 3 - Acesse o diretório principal:
-
-```bash
-cd main
-```
-
-#### 4 - Inicialize o terraform:
-
-```bash
-terraform init
-```
-
-#### 5 - Verifique se as configurações estão corretas:
+#### 3 - Verifique se as configurações estão corretas:
 
 ```bash
 terraform plan
 ```
 
-#### 6 - Crie os recursos:
+#### 4 - Crie os recursos:
 
 ```bash
 terraform apply
-```
-
-#### 7 - Remova os recursos quando necessário:
-
-```bash
-terraform destroy
 ```
 
 ## Teste de acesso à máquina Master
@@ -118,10 +91,16 @@ Teste o acesso via chave ssh:
 bash -c "$(terraform output --raw vm_master_ssh_command)"
 ```
 
-Teste o acesso via password:
+Teste o acesso com a senha gerada anteriormente::
 
 ```bash
 ssh ubuntu@$(terraform output --raw vm_master_public_ip)
+```
+
+Teste o acesso master->worker substituindo **ip_interno_worker** por um ip válido e utilize a senha gerada anteriormente:
+
+```bash
+ssh ubuntu@ip_interno_worker
 ```
 
 ## Criação das chaves SSH internas
@@ -186,4 +165,14 @@ NAME       STATUS   ROLES                  AGE     VERSION        INTERNAL-IP   
 master-0   Ready    control-plane,master   2m32s   v1.32.6+k3s1   10.0.0.8      <none>        Ubuntu 24.04.2 LTS   6.8.0-60-generic   containerd://2.0.5-k3s1.32
 worker-0   Ready    <none>                 25s     v1.32.6+k3s1   10.0.0.14     <none>        Ubuntu 24.04.2 LTS   6.8.0-60-generic   containerd://2.0.5-k3s1.32
 worker-1   Ready    <none>                 6s      v1.32.6+k3s1   10.0.0.5      <none>        Ubuntu 24.04.2 LTS   6.8.0-60-generic   containerd://2.0.5-k3s1.32
+```
+
+## Remoção
+
+### 1 - Remova os recursos quando necessário:
+
+Estando no diretório "modulos-magalu-cloud/main" execute:
+
+```bash
+terraform destroy --auto-approve
 ```
