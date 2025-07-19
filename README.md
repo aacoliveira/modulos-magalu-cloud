@@ -190,7 +190,7 @@ k3sup join --ip $AGENT_IP --server-ip $SERVER_IP --user ubuntu --ssh-key /home/u
 
 Repita 1.3 e 1.4 para os demais workers
 
-### 3 - Resultado
+### 2 - Resultado
 
 ```
 NAME       STATUS   ROLES                  AGE     VERSION        INTERNAL-IP   EXTERNAL-IP   OS-IMAGE             KERNEL-VERSION     CONTAINER-RUNTIME
