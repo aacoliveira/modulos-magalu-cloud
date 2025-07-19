@@ -1,0 +1,8 @@
+## Diretório com arquivos do provider terraform
+main/.terraform
+
+## Diretório com chaves ssh
+ssh/
+
+## Arquivo com a senha das vms
+scripts-sh/pwd_user_ubuntu.txt
