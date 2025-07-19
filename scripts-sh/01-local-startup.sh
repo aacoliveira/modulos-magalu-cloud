@@ -15,4 +15,4 @@ PWD_USER_UBUNTU=$(cat /dev/urandom | tr -dc 'a-z0-9' | head -c 8)
 echo $PWD_USER_UBUNTU > scripts-sh/pwd_user_ubuntu.txt
 
 ### Altera o script do ubuntu para definir a senha dos hosts no momento da criação
-(read -r line; sed -i "s/NOVA_SENHA/$line/" scripts-sh/2-ubuntu-startup.sh) <<< $PWD_USER_UBUNTU
+(read -r line; sed -i "s/NOVA_SENHA/$line/" scripts-sh/02-ubuntu-startup.sh) <<< $PWD_USER_UBUNTU
