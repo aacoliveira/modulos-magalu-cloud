@@ -68,8 +68,8 @@ A partir da raiz do projeto
 #### 1 - Prepare o ambiente localmente
 
 ```bash
-chmod +x scripts-sh/1-local-startup.sh
-./1-local-startup.sh
+chmod +x scripts-sh/01-local-startup.sh
+./01-local-startup.sh
 ```
 
 Será gerado o arquivo [scripts-sh/pwd_user_ubuntu.txt](./scripts-sh/pwd_user_ubuntu.txt) em *plaintext* com a senha de acesso do usuário **ubuntu** de todas as VMs.
