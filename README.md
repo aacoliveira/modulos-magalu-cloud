@@ -57,6 +57,10 @@ Instale o cli utilizando a [documentação oficial da hashicorp](https://develop
 
 #### 2.2 - Insira a apikey na propriedade [api_key](./main/terraform.tfvars#L1) do arquivo tfvars
 
+### 3 - JQ
+
+Ferramenta para auxiliar na manipulação de objetos .json. Instale o cli utilizando a [documentação oficial](https://jqlang.org/download/)
+
 ## Criação das VMs
 
 A partir da raiz do projeto
@@ -88,6 +92,20 @@ terraform plan
 
 ```bash
 terraform apply
+```
+
+#### 5 - JSON com nome e ip das máquinas
+
+Para visualizar o json com informações do Master:
+
+```bash
+terraform output -json vm_master_private_ip_and_name | jq '[{"vm-name": .[1][], "vm-private-ip": .[0][]}]'
+```
+
+Para visualizar o json com informações dos 3 workers:
+
+```bash
+terraform output -json vm_worker_private_ips_and_name | jq '[{"vm-name": .[1][0][], "vm-private-ip": .[0][0][]},{"vm-name": .[1][1][], "vm-private-ip": .[0][1][]},{"vm-name": .[1][2][], "vm-private-ip": .[0][2][]}]'
 ```
 
 ## Teste de acesso à máquina Master

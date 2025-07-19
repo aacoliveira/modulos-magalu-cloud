@@ -2,6 +2,10 @@ output "virtual_machine_id" {
   value = mgc_virtual_machine_instances.virtual_machine[*].id
 }
 
+output "virtual_machine_name" {
+  value = mgc_virtual_machine_instances.virtual_machine[*].name
+}
+
 output "interface_id_vm" {
   value = [
     for interface in mgc_virtual_machine_instances.virtual_machine.network_interfaces :
