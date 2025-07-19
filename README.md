@@ -19,9 +19,9 @@ Recursos que serão criados por default:
 
 ![Projeto](./doc/img/recursos/mgc_master_workers_light.png)
 
-## Custo Estimado
+## Custos Estimados
 
-Deve ser considerado também o custo do **IP fixo do master** + **Custo de transferência de rede (Egress e NAT)**
+### Virtual Machines
 
 | VM | Tempo do ambiente ligado | Cálculo | Custo Parcial |
 | :---: | :---: | :---: | :---: |
@@ -32,6 +32,13 @@ Deve ser considerado também o custo do **IP fixo do master** + **Custo de trans
 | 4 VMs (BV1-4-40) | 168h (7 dias / 672h total) | 0,1274 × 672h | R$ 85,6128 |
 | 4 VMs (BV1-4-40) | 360h (15 dias / 1440h total) | 0,1274 × 1440h | R$ 183,456 |
 | 4 VMs (BV1-4-40) | 720h (30 dias / 2880h total) | 0,1274 × 2880h | R$ 366,912 |
+
+### Rede
+| Recurso | Descrição | Preço |
+| --- | --- | --- |
+| VPC |  Tráfego de Saída | R$ 0.10 GiB/mês |
+| VPC | Tráfego de Entrada | R$ 0.00 |
+| NAT Gateway | Tráfego de Saída da SubnetPrivada para Internet via IP Público | R$ 0.10 GiB/mês |
 
 ## Requisitos
 
@@ -68,7 +75,7 @@ Será gerado o arquivo [scripts-sh/pwd_user_ubuntu.txt](./scripts-sh/pwd_user_ub
 Estando no diretório "modulos-magalu-cloud/main" execute:
 
 ```bash
-cd main && terraform init
+terraform init
 ```
 
 #### 3 - Verifique se as configurações estão corretas:
@@ -85,19 +92,21 @@ terraform apply
 
 ## Teste de acesso à máquina Master
 
-Teste o acesso via chave ssh:
+### 1 - Teste o acesso ao master-0 via chave ssh:
 
 ```bash
 bash -c "$(terraform output --raw vm_master_ssh_command)"
 ```
 
-Teste o acesso com a senha gerada anteriormente::
+### 2 - Teste o acesso ao master-0 com a senha gerada anteriormente:
 
 ```bash
 ssh ubuntu@$(terraform output --raw vm_master_public_ip)
 ```
 
-Teste o acesso master->worker substituindo **ip_interno_worker** por um ip válido e utilize a senha gerada anteriormente:
+### 3 - Teste o acesso **master-0 -> worker** 
+
+A partir do master-0, substitua **ip_interno_worker** por um ip válido e utilize a senha do arquivo [scripts-sh/pwd_user_ubuntu.txt](./scripts-sh/pwd_user_ubuntu.txt):
 
 ```bash
 ssh ubuntu@ip_interno_worker
@@ -107,58 +116,81 @@ ssh ubuntu@ip_interno_worker
 
 Essas chaves serão utilizadas de forma interna pelos hosts
 
-### Acesse o master
+### 1 - Acesse o master-0
 
-#### Gere um novo par de chaves ssh
+#### 1.1 - Gere um novo par de chaves ssh
 
 ```bash
 ssh-keygen -t rsa -f ~/.ssh/chave_ssh_k3s -b 4096 -C "chave_ssh_k3s"
 ```
 
-#### Copie a chave ssh para o master
+#### 1.2 - Copie a chave ssh para o próprio master-0
+
+Utilize a senha do arquivo [scripts-sh/pwd_user_ubuntu.txt](./scripts-sh/pwd_user_ubuntu.txt):
 
 ```bash
 ssh-copy-id -i /home/ubuntu/.ssh/chave_ssh_k3s.pub ubuntu@localhost
 ```
 
-#### Copie a chave ssh para os demais hosts
+#### 1.3 - Copie a chave ssh para os demais workers
+
+Utilize a senha do arquivo [scripts-sh/pwd_user_ubuntu.txt](./scripts-sh/pwd_user_ubuntu.txt) e substitua **ip_interno_worker** por um ip válido:
 
 ```bash
-ssh-copy-id -i /home/ubuntu/.ssh/chave_ssh_k3s.pub ubuntu@10.0.0.?
+ssh-copy-id -i /home/ubuntu/.ssh/chave_ssh_k3s.pub ubuntu@ip_interno_worker
 ```
 
 ## Criação do cluster Kubernetes com K3S
 
-Acesse o master-0 
+### 1 - A partir do master-0 
 
-### Instale o k3sup
+#### 1.1 - Instale o k3sup
 
 ```bash
 wget https://github.com/alexellis/k3sup/releases/download/0.13.10/k3sup
 sudo install k3sup /usr/local/bin/
+```
+
+Cheque a instalação:
+
+```bash
 k3sup --help
 ```
 
-### Inicie o cluster no master-0
+#### 1.2 - Inicie o cluster 
+
+Execute os comandos abaixo no master-0:
 
 ```bash
-k3sup install --local --context default --no-extras --k3s-version  v1.32.6+k3s1 && \
-export KUBECONFIG=`pwd`/kubeconfig && \
+k3sup install --local --context default --no-extras --k3s-version  v1.32.6+k3s1
+```
+
+Visualize o estado do cluster:
+
+```bash
+export KUBECONFIG=`pwd`/kubeconfig
 kubectl get node -o wide
 ```
 
-Adicione os demais workers ao cluster trocando **IP_INTERNO_WORKER** pelo ip do worker em questão e **IP_INTERNO_MASTER** pelo ip do master-0:
+Realize o join:
+
+- Troque **IP_INTERNO_WORKER** pelo ip do worker em questão
 
 ```bash
 export AGENT_IP=IP_INTERNO_WORKER
-export SERVER_IP=IP_INTERNO_MASTER
-export USER=ubuntu
-k3sup join --ip $AGENT_IP --server-ip $SERVER_IP --user $USER --ssh-key /home/ubuntu/.ssh/chave_ssh_k3s --k3s-version  v1.32.6+k3s1
+export SERVER_IP=$(hostname -I | cut -d ' ' -f1)
+echo $AGENT_IP $SERVER_IP
 ```
 
-Repita esse comando para os demais workers
+Faça o join:
 
-### Resultado
+```bash
+k3sup join --ip $AGENT_IP --server-ip $SERVER_IP --user ubuntu --ssh-key /home/ubuntu/.ssh/chave_ssh_k3s --k3s-version  v1.32.6+k3s1
+```
+
+Repita 1.3 e 1.4 para os demais workers
+
+### 3 - Resultado
 
 ```
 NAME       STATUS   ROLES                  AGE     VERSION        INTERNAL-IP   EXTERNAL-IP   OS-IMAGE             KERNEL-VERSION     CONTAINER-RUNTIME
