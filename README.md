@@ -150,7 +150,7 @@ Essas chaves serão utilizadas de forma interna pelo k3sup no momento de criaç�
 
 ### 1 - Acesse o master-0
 
-Estando no diretório "main/" execute o comando:
+Estando no diretório "main/", execute o comando:
 
 ```bash
 bash -c "$(terraform output --raw vm_master_ssh_command)"
@@ -196,49 +196,27 @@ ssh-copy-id -i /home/ubuntu/.ssh/chave_ssh_k3s.pub ubuntu@$(jq -r '.[2]."vm-priv
 
 ## Criação do cluster Kubernetes com K3S
 
-Será utilizada a versão v1.32.6+k3s1: https://docs.k3s.io/release-notes/v1.32.X#release-v1326k3s1
+Será utilizada a versão **v1.32.6+k3s1** - Documentação: https://docs.k3s.io/release-notes/v1.32.X#release-v1326k3s1
 
-### 1 - A partir do master-0
+### 1 - Copie o script para o Master-0
 
-A partir do "/home/ubuntu" no master-0:
-
-#### 1.1 - Inicie o cluster
+Estando no diretório "main/", execute o comando:
 
 ```bash
-k3sup install --local --context default --no-extras --k3s-version  v1.32.6+k3s1
+chave_privada=$(printf "%s\n" ../ssh/* | grep -v pub)
+scp -i $chave_privada ../scripts-sh/04-master-0.sh ubuntu@$(terraform output --raw vm_master_public_ip):/home/ubuntu
 ```
 
-#### 1.2 - Visualize o estado do cluster:
+### 2- Execute o script de join
+
+Estando no diretório "main/", execute o comando:
 
 ```bash
-export KUBECONFIG=/home/ubuntu/kubeconfig
-kubectl config use-context default
-kubectl get node -o wide
+chave_privada=$(printf "%s\n" ../ssh/* | grep -v pub)
+ssh -i $chave_privada ubuntu@$(terraform output --raw vm_master_public_ip) 'chmod +x 04-master-0.sh && ./04-master-0.sh'
 ```
 
-#### 1.3 - Realize o join dos workers
-
-A partir do "/home/ubuntu" no master-0
-
-##### Comando para join do worker-0
-
-```bash
-k3sup join --ip $(jq -r '.[0]."vm-private-ip"' workers.json) --server-ip $(hostname -I | cut -d ' ' -f1) --user ubuntu --ssh-key /home/ubuntu/.ssh/chave_ssh_k3s --k3s-version  v1.32.6+k3s1
-```
-
-##### Comando para join do worker-1
-
-```bash
-k3sup join --ip $(jq -r '.[1]."vm-private-ip"' workers.json) --server-ip $(hostname -I | cut -d ' ' -f1) --user ubuntu --ssh-key /home/ubuntu/.ssh/chave_ssh_k3s --k3s-version  v1.32.6+k3s1
-```
-
-##### Comando para join do worker-2
-
-```bash
-k3sup join --ip $(jq -r '.[2]."vm-private-ip"' workers.json) --server-ip $(hostname -I | cut -d ' ' -f1) --user ubuntu --ssh-key /home/ubuntu/.ssh/chave_ssh_k3s --k3s-version  v1.32.6+k3s1
-```
-
-### 2 - Resultado
+### 3 - Resultado
 
 ```
 NAME       STATUS   ROLES                  AGE     VERSION        INTERNAL-IP   EXTERNAL-IP   OS-IMAGE             KERNEL-VERSION     CONTAINER-RUNTIME
