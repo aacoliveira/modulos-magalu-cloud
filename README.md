@@ -23,6 +23,9 @@ Recursos que serão criados por default:
 
 ### Virtual Machines
 
+- VMs com 1 vcpu,4 gb de RAM e 40gb de armazenamento no **/**
+- As vms não serão criadas com discos adicionais
+
 | VM | Tempo do ambiente ligado | Cálculo | Custo Parcial |
 | :---: | :---: | :---: | :---: |
 | 4 VMs (BV1-4-40) | 01h (04h total) | 0,1274 × 4h | R$ 0,5096 |
@@ -44,7 +47,7 @@ Recursos que serão criados por default:
 
 ### 1 - Terraform 
 
-Instale o cli utilizando a [documentação oficial da hashicorp](https://developer.hashicorp.com/terraform/install)
+Instale o cli utilizando a [documentação oficial](https://developer.hashicorp.com/terraform/install)
 
 ### 2 - API Key
 
@@ -55,11 +58,19 @@ Instale o cli utilizando a [documentação oficial da hashicorp](https://develop
 ![API Key](./doc/img/api_key/permissoes.jpg)
 
 
-#### 2.2 - Insira a ApiKey na propriedade [api_key](./main/terraform.tfvars#L1) do arquivo tfvars
+2.1.2 - Insira a ApiKey na propriedade [api_key](./main/terraform.tfvars#L1) do arquivo tfvars
 
-### 3 - JQ
+### 3 - Jq (Json Parser)
 
-Ferramenta para auxiliar na manipulação de objetos .json. Instale o cli utilizando a [documentação oficial](https://jqlang.org/download/)
+Ferramenta utilizada para manipular objetos json.
+
+Instale o cli utilizando a [documentação oficial](https://jqlang.org/download/)
+
+### 4 - Kubectl
+
+Ferramenta utilizada para interagir com o cluster Kubernetes.
+
+Instale o cli utilizando a [documentação oficial](https://kubernetes.io/pt-br/docs/tasks/tools/#kubectl)
 
 ## Criação das VMs
 
