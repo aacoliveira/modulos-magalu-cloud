@@ -1,6 +1,10 @@
 ## Diretório com arquivos do provider terraform
 main/.terraform
 
+## Arquivo com os ips das vms
+main/master.json
+main/workers.json
+
 ## Diretório com chaves ssh
 ssh/
 

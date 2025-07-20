@@ -1,6 +1,6 @@
 # MagaluCloud
 
-Criação de máquinas virtuais (VM) na Magalu via Terraform que formarão um cluster Kubernetes 'baremetal'.
+Criação de máquinas virtuais (VM) na Magalu via Terraform que formarão um cluster Kubernetes 'baremetal' com 4 nodes na v1.32.6
 
 ## Recursos que serão criados
 
@@ -15,7 +15,7 @@ Recursos que serão criados por default:
 | [Public IP](./main/modules/public_ip/main.tf) | IP Público que será adicionado ao master |
 | [Virtual Machine (1 CPU + 4 GB RAM + 40 GB disco)](./main/modules/virtual_machines/main.tf) | 1 virtual machine com Ubuntu 24.04 para o Master e 3 virtual machine com Ubuntu 24.04 para o Worker |
 
-## Supersimplificação dos recursos criados
+## Arquitetura dos recursos
 
 ![Projeto](./doc/img/recursos/mgc_master_workers_light.png)
 
@@ -55,7 +55,7 @@ Instale o cli utilizando a [documentação oficial da hashicorp](https://develop
 ![API Key](./doc/img/api_key/permissoes.jpg)
 
 
-#### 2.2 - Insira a apikey na propriedade [api_key](./main/terraform.tfvars#L1) do arquivo tfvars
+#### 2.2 - Insira a ApiKey na propriedade [api_key](./main/terraform.tfvars#L1) do arquivo tfvars
 
 ### 3 - JQ
 
@@ -76,7 +76,7 @@ Será gerado o arquivo [scripts-sh/pwd_user_ubuntu.txt](./scripts-sh/pwd_user_ub
 
 #### 2 - Inicialize o terraform:
 
-Estando no diretório "modulos-magalu-cloud/main" execute:
+Estando no diretório "main/", execute:
 
 ```bash
 terraform init
@@ -94,21 +94,9 @@ terraform plan
 terraform apply
 ```
 
-#### 5 - JSON com nome e ip das máquinas
-
-Para visualizar o json com informações do Master:
-
-```bash
-terraform output -json vm_master_private_ip_and_name | jq '[{"vm-name": .[1][], "vm-private-ip": .[0][]}]'
-```
-
-Para visualizar o json com informações dos 3 workers:
-
-```bash
-terraform output -json vm_worker_private_ips_and_name | jq '[{"vm-name": .[1][0][], "vm-private-ip": .[0][0][]},{"vm-name": .[1][1][], "vm-private-ip": .[0][1][]},{"vm-name": .[1][2][], "vm-private-ip": .[0][2][]}]'
-```
-
 ## Teste de acesso à máquina Master
+
+Estando no diretório "main/", execute:
 
 ### 1 - Teste o acesso ao master-0 via chave ssh:
 
@@ -122,24 +110,58 @@ bash -c "$(terraform output --raw vm_master_ssh_command)"
 ssh ubuntu@$(terraform output --raw vm_master_public_ip)
 ```
 
-### 3 - Teste o acesso **master-0 -> worker** 
+### 4 - Copie para o master-0 o JSON com nome e ip das máquinas
 
-A partir do master-0, substitua **ip_interno_worker** por um ip válido e utilize a senha do arquivo [scripts-sh/pwd_user_ubuntu.txt](./scripts-sh/pwd_user_ubuntu.txt):
+Estando no diretório "main/", execute:
+
+#### 4.1 - Master
+
+Para criar o json com informações do master-0:
 
 ```bash
-ssh ubuntu@ip_interno_worker
+terraform output -json vm_master_private_ip_and_name | jq '[{"vm-name": .[1][], "vm-private-ip": .[0][]}]' > master.json
+```
+
+Copie o json para o master-0:
+
+```bash
+chave_privada=$(printf "%s\n" ../ssh/* | grep -v pub)
+scp -i $chave_privada master.json ubuntu@$(terraform output --raw vm_master_public_ip):/home/ubuntu
+```
+
+#### 4.2 - Workers
+
+Para criar o json com informações dos 3 workers:
+
+```bash
+terraform output -json vm_worker_private_ips_and_name | jq '[{"vm-name": .[1][0][], "vm-private-ip": .[0][0][]},{"vm-name": .[1][1][], "vm-private-ip": .[0][1][]},{"vm-name": .[1][2][], "vm-private-ip": .[0][2][]}]' >  workers.json
+```
+
+Copie o json para o master-0:
+
+```bash
+chave_privada=$(printf "%s\n" ../ssh/* | grep -v pub)
+scp -i $chave_privada workers.json ubuntu@$(terraform output --raw vm_master_public_ip):/home/ubuntu
 ```
 
 ## Criação das chaves SSH internas
 
-Essas chaves serão utilizadas de forma interna pelos hosts
+Essas chaves serão utilizadas de forma interna pelo k3sup no momento de criação do cluster.
 
 ### 1 - Acesse o master-0
 
-#### 1.1 - Gere um novo par de chaves ssh
+Estando no diretório "main/" execute o comando:
 
 ```bash
-ssh-keygen -t rsa -f ~/.ssh/chave_ssh_k3s -b 4096 -C "chave_ssh_k3s"
+bash -c "$(terraform output --raw vm_master_ssh_command)"
+```
+
+#### 1.1 - Gere um novo par de chaves ssh
+
+A partir do "/home/ubuntu" no master-0:
+
+```bash
+ssh-keygen -t rsa -f ~/.ssh/chave_ssh_k3s -b 4096 -C "chave_ssh_k3s" -P ""
 ```
 
 #### 1.2 - Copie a chave ssh para o próprio master-0
@@ -152,76 +174,83 @@ ssh-copy-id -i /home/ubuntu/.ssh/chave_ssh_k3s.pub ubuntu@localhost
 
 #### 1.3 - Copie a chave ssh para os demais workers
 
-Utilize a senha do arquivo [scripts-sh/pwd_user_ubuntu.txt](./scripts-sh/pwd_user_ubuntu.txt) e substitua **ip_interno_worker** por um ip válido:
+Utilize a senha do ubuntu presente no arquivo [scripts-sh/pwd_user_ubuntu.txt](./scripts-sh/pwd_user_ubuntu.txt)
+
+##### Comando para o worker-0:
 
 ```bash
-ssh-copy-id -i /home/ubuntu/.ssh/chave_ssh_k3s.pub ubuntu@ip_interno_worker
+ssh-copy-id -i /home/ubuntu/.ssh/chave_ssh_k3s.pub ubuntu@$(jq -r '.[0]."vm-private-ip"' workers.json)
+```
+
+##### Comando para o worker-1:
+
+```bash
+ssh-copy-id -i /home/ubuntu/.ssh/chave_ssh_k3s.pub ubuntu@$(jq -r '.[1]."vm-private-ip"' workers.json)
+```
+
+##### Comando para o worker-2:
+
+```bash
+ssh-copy-id -i /home/ubuntu/.ssh/chave_ssh_k3s.pub ubuntu@$(jq -r '.[2]."vm-private-ip"' workers.json)
 ```
 
 ## Criação do cluster Kubernetes com K3S
 
-### 1 - A partir do master-0 
+### 1 - A partir do master-0
 
-#### 1.1 - Instale o k3sup
+A partir do "/home/ubuntu" no master-0:
 
-```bash
-wget https://github.com/alexellis/k3sup/releases/download/0.13.10/k3sup
-sudo install k3sup /usr/local/bin/
-```
-
-Cheque a instalação:
-
-```bash
-k3sup --help
-```
-
-#### 1.2 - Inicie o cluster 
-
-Execute os comandos abaixo no master-0:
+#### 1.1 - Inicie o cluster
 
 ```bash
 k3sup install --local --context default --no-extras --k3s-version  v1.32.6+k3s1
 ```
 
-Visualize o estado do cluster:
+#### 1.2 - Visualize o estado do cluster:
 
 ```bash
-export KUBECONFIG=`pwd`/kubeconfig
+export KUBECONFIG=/home/ubuntu/kubeconfig
+kubectl config use-context default
 kubectl get node -o wide
 ```
 
-Realize o join:
+#### 1.3 - Realize o join dos workers
 
-- Troque **IP_INTERNO_WORKER** pelo ip do worker em questão
+A partir do "/home/ubuntu" no master-0
 
-```bash
-export AGENT_IP=IP_INTERNO_WORKER
-export SERVER_IP=$(hostname -I | cut -d ' ' -f1)
-echo $AGENT_IP $SERVER_IP
-```
-
-Faça o join:
+##### Comando para join do worker-0
 
 ```bash
-k3sup join --ip $AGENT_IP --server-ip $SERVER_IP --user ubuntu --ssh-key /home/ubuntu/.ssh/chave_ssh_k3s --k3s-version  v1.32.6+k3s1
+k3sup join --ip $(jq -r '.[0]."vm-private-ip"' workers.json) --server-ip $(hostname -I | cut -d ' ' -f1) --user ubuntu --ssh-key /home/ubuntu/.ssh/chave_ssh_k3s --k3s-version  v1.32.6+k3s1
 ```
 
-Repita 1.3 e 1.4 para os demais workers
+##### Comando para join do worker-1
+
+```bash
+k3sup join --ip $(jq -r '.[1]."vm-private-ip"' workers.json) --server-ip $(hostname -I | cut -d ' ' -f1) --user ubuntu --ssh-key /home/ubuntu/.ssh/chave_ssh_k3s --k3s-version  v1.32.6+k3s1
+```
+
+##### Comando para join do worker-2
+
+```bash
+k3sup join --ip $(jq -r '.[2]."vm-private-ip"' workers.json) --server-ip $(hostname -I | cut -d ' ' -f1) --user ubuntu --ssh-key /home/ubuntu/.ssh/chave_ssh_k3s --k3s-version  v1.32.6+k3s1
+```
 
 ### 2 - Resultado
 
 ```
 NAME       STATUS   ROLES                  AGE     VERSION        INTERNAL-IP   EXTERNAL-IP   OS-IMAGE             KERNEL-VERSION     CONTAINER-RUNTIME
-master-0   Ready    control-plane,master   2m32s   v1.32.6+k3s1   10.0.0.8      <none>        Ubuntu 24.04.2 LTS   6.8.0-60-generic   containerd://2.0.5-k3s1.32
-worker-0   Ready    <none>                 25s     v1.32.6+k3s1   10.0.0.14     <none>        Ubuntu 24.04.2 LTS   6.8.0-60-generic   containerd://2.0.5-k3s1.32
-worker-1   Ready    <none>                 6s      v1.32.6+k3s1   10.0.0.5      <none>        Ubuntu 24.04.2 LTS   6.8.0-60-generic   containerd://2.0.5-k3s1.32
+master-0   Ready    control-plane,master   3m7s    v1.32.6+k3s1   10.0.0.3      <none>        Ubuntu 24.04.2 LTS   6.8.0-60-generic   containerd://2.0.5-k3s1.32
+worker-0   Ready    <none>                 2m33s   v1.32.6+k3s1   10.0.0.6      <none>        Ubuntu 24.04.2 LTS   6.8.0-60-generic   containerd://2.0.5-k3s1.32
+worker-1   Ready    <none>                 1m47s     v1.32.6+k3s1   10.0.0.7      <none>        Ubuntu 24.04.2 LTS   6.8.0-60-generic   containerd://2.0.5-k3s1.32
+worker-2   Ready    <none>                 21s     v1.32.6+k3s1   10.0.0.13     <none>        Ubuntu 24.04.2 LTS   6.8.0-60-generic   containerd://2.0.5-k3s1.32
 ```
 
 ## Remoção
 
 ### 1 - Remova os recursos quando necessário:
 
-Estando no diretório "modulos-magalu-cloud/main" execute:
+Estando no diretório "main/", execute:
 
 ```bash
 terraform destroy --auto-approve

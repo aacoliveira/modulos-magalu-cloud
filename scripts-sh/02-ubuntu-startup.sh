@@ -20,3 +20,7 @@ sudo sed -i 's/KbdInteractiveAuthentication no/KbdInteractiveAuthentication yes/
 
 ### Reinicia o serviço SSH
 sudo systemctl restart ssh.service
+
+### Instala o k3sup
+wget https://github.com/alexellis/k3sup/releases/download/0.13.10/k3sup
+sudo install k3sup /usr/local/bin/
