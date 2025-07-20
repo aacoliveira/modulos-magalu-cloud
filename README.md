@@ -110,11 +110,11 @@ bash -c "$(terraform output --raw vm_master_ssh_command)"
 ssh ubuntu@$(terraform output --raw vm_master_public_ip)
 ```
 
-### 4 - Copie para o master-0 o JSON com nome e ip das máquinas
+### 3 - Copie para o master-0 o JSON com nome e ip das máquinas
 
 Estando no diretório "main/", execute:
 
-#### 4.1 - Master
+#### 3.1 - Master
 
 Para criar o json com informações do master-0:
 
@@ -129,7 +129,7 @@ chave_privada=$(printf "%s\n" ../ssh/* | grep -v pub)
 scp -i $chave_privada master.json ubuntu@$(terraform output --raw vm_master_public_ip):/home/ubuntu
 ```
 
-#### 4.2 - Workers
+#### 3.2 - Workers
 
 Para criar o json com informações dos 3 workers:
 
@@ -195,6 +195,8 @@ ssh-copy-id -i /home/ubuntu/.ssh/chave_ssh_k3s.pub ubuntu@$(jq -r '.[2]."vm-priv
 ```
 
 ## Criação do cluster Kubernetes com K3S
+
+Será utilizada a versão v1.32.6+k3s1: https://docs.k3s.io/release-notes/v1.32.X#release-v1326k3s1
 
 ### 1 - A partir do master-0
 
