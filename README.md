@@ -198,7 +198,15 @@ ssh-copy-id -i /home/ubuntu/.ssh/chave_ssh_k3s.pub ubuntu@$(jq -r '.[2]."vm-priv
 
 Será utilizada a versão **v1.32.6+k3s1** - Documentação: https://docs.k3s.io/release-notes/v1.32.X#release-v1326k3s1
 
-### 1 - Copie o script para o Master-0
+### 1 - Ip externo do Master-0
+
+Estando no diretório "main/", execute o comando abaixo que insere o ip externo do master-0 no script:
+
+```bash
+(read -r line; sed -i "s/MASTER0_EXTERNAL_IP/$line/" ../scripts-sh/04-master-0.sh) <<< $(terraform output --raw vm_master_public_ip)
+```
+
+### 2 - Copie o script para o Master-0
 
 Estando no diretório "main/", execute o comando:
 
@@ -207,7 +215,7 @@ chave_privada=$(printf "%s\n" ../ssh/* | grep -v pub)
 scp -i $chave_privada ../scripts-sh/04-master-0.sh ubuntu@$(terraform output --raw vm_master_public_ip):/home/ubuntu
 ```
 
-### 2- Execute o script de join
+### 3 - Execute o script remotamente
 
 Estando no diretório "main/", execute o comando:
 
@@ -216,7 +224,28 @@ chave_privada=$(printf "%s\n" ../ssh/* | grep -v pub)
 ssh -i $chave_privada ubuntu@$(terraform output --raw vm_master_public_ip) 'chmod +x 04-master-0.sh && ./04-master-0.sh'
 ```
 
-### 3 - Resultado
+### 4 - Obtendo o Kubeconfig do Cluster
+
+#### 4.1 - Comando para copiar o kubeconfig do master-0:
+
+```bash
+chave_privada=$(printf "%s\n" ../ssh/* | grep -v pub)
+scp -i $chave_privada ubuntu@$(terraform output --raw vm_master_public_ip):/home/ubuntu/kubeconfig ./kubeconfig.yaml
+```
+
+#### 3.2 - Ajuste no kubeconfig de 127.0.0.1 para o ip público do master-0:
+
+```bash
+sed -i "s/127.0.0.1/$(terraform output --raw vm_master_public_ip)/" kubeconfig.yaml
+```
+
+#### 3.3 - Teste com o Kubeconfig:
+
+```bash
+kubectl --kubeconfig kubeconfig.yaml get node
+```
+
+Resultado:
 
 ```
 NAME       STATUS   ROLES                  AGE     VERSION        INTERNAL-IP   EXTERNAL-IP   OS-IMAGE             KERNEL-VERSION     CONTAINER-RUNTIME

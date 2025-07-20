@@ -1,4 +1,5 @@
 k8s_version="v1.32.6+k3s1"
+external_server_ip="MASTER0_EXTERNAL_IP"
 
 ### Aguarda alguns segundos
 proximo_node()
@@ -26,7 +27,7 @@ kubectl config use-context default
 
 #### Inicialização do cluster
 printf "\nIniciando cluster na $k8s_version localmente no $(hostname):\n"
-k3sup install --local --context default --no-extras --k3s-version  $k8s_version
+k3sup install --local --context default --tls-san $external_server_ip --no-extras --k3s-version  $k8s_version
 
 proximo_node
 
