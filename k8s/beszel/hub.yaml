@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: beszel-hub
-  namespace: default
+  namespace: beszel
 spec:
   selector:
     matchLabels:
@@ -12,34 +12,45 @@ spec:
       labels:
         app: beszel-hub
     spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                - key: kubernetes.io/hostname
+                  operator: In
+                  values:
+                    - worker-0
       containers:
         - name: beszel-hub
-          image: henrygd/beszel:0.11.1
+          image: henrygd/beszel:0.12.0-beta2
           imagePullPolicy: IfNotPresent          
           ports:
             - containerPort: 8090
-              name: http
+              name: port-8090
+            - containerPort: 80
+              name: webhook            
           resources:
             requests:
-              cpu: '0.5'
-              memory: '512Mi'
+              cpu: '0.1'
+              memory: '128Mi'
             limits:
               cpu: '0.5'
               memory: '512Mi'
+          volumeMounts:
+            - name: dados
+              mountPath: /beszel_data
       restartPolicy: Always
-      tolerations:
-        - effect: NoSchedule
-          key: node-role.kubernetes.io/master
-          operator: Exists
-        - effect: NoSchedule
-          key: node-role.kubernetes.io/control-plane
-          operator: Exists
+      volumes:
+      - name: dados
+        hostPath:
+          path: /beszel/beszel_data
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: beszel-hub
-  namespace: default
+  name: hub
+  namespace: beszel
 spec:
   type: NodePort
   selector:
