@@ -3,7 +3,7 @@
 ### Criação do par de chaves ssh
 mkdir ssh
 prefix=$(echo $RANDOM)
-ssh-keygen -t rsa -f ssh/chave_ssh_$prefix -b 4096 -C "chave_ssh_$prefix"
+ssh-keygen -t rsa -f ssh/chave_ssh_$prefix -b 4096 -C "chave_ssh_$prefix" -P ""
 chmod 600 ssh/chave_ssh_$prefix
 (read -r line; sed -i "s/SUFIXO_CHAVE_SSH/$line/" main/terraform.tfvars) <<< "$prefix"
 (read -r line; sed -i "s/TEXTO_SUFIXO/$line/" main/terraform.tfvars) <<< "$prefix"
