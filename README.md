@@ -207,7 +207,7 @@ ssh-copy-id -i /home/ubuntu/.ssh/chave_ssh_k3s.pub ubuntu@$(jq -r '.[2]."vm-priv
 
 ## Criação do cluster Kubernetes com K3S
 
-Será utilizada a versão **v1.32.6+k3s1** - Documentação: https://docs.k3s.io/release-notes/v1.32.X#release-v1326k3s1
+Será utilizada a versão **v1.32.6+k3s1** - Documentação: https://github.com/k3s-io/k3s/releases/tag/v1.32.6+k3s1
 
 ### 1 - Ip externo do Master-0
 
